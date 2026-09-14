@@ -3,7 +3,7 @@
   "version": "0.6.2",
   "description": "Transform quotes into Severance character voices using Claude or OpenAI",
   "license": "MIT",
-  "author": "kenjonespizza",
+  "author": "pelikenjones",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -19,7 +19,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kenjonespizza/defiant-jazz.git"
+    "url": "https://github.com/pelikenjones/defiant-jazz.git"
   },
   "exports": {
     ".": {
