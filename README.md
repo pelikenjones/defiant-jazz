@@ -358,9 +358,9 @@ Worth knowing about:
 - Lore adherence is weaker on `gpt-4o-mini`: characters sometimes gesture
   near a Lumon term instead of naming it, or skip one the quote earned. See
   the known limitation in [CHANGELOG.md](CHANGELOG.md#060) (0.6.0).
-- In 0.8.1, only the GPT-4 family works (`gpt-4o`, `gpt-4.1` and their
-  minis). GPT-5 and later reject the `max_tokens` parameter the provider
-  sends, with "Unsupported parameter: 'max_tokens'". A fix is on the way.
+- GPT-5 and later need 0.8.2 or later. On 0.8.1 and earlier they fail with
+  "Unsupported parameter: 'max_tokens'"; only the GPT-4 family (`gpt-4o`,
+  `gpt-4.1` and their minis) works there.
 - `model` in the result is whatever OpenAI reports, which can be a dated
   snapshot ID such as `gpt-4o-mini-2024-07-18`.
 
