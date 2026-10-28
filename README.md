@@ -56,8 +56,7 @@ three steps, below. Or try it in your browser first:
    `provider` option, the library won't guess which account to bill; see
    [Choosing a provider](#choosing-a-provider).
 
-3. Save this as `app.mjs` and run `node app.mjs`. The `.mjs` extension tells
-   Node the file is ESM, which `import` and the top-level `await` need.
+3. Save this as `app.mjs` and run `node app.mjs`:
 
    ```javascript
    import { refine } from 'defiant-jazz';
@@ -397,6 +396,7 @@ await refine.dylan("Hello world", { effort: 'low' });
 | `Anthropic API error (` | Any other Anthropic API error, with its status and message. | Read the message; a model rejecting `effort` lands here. |
 | `Anthropic returned no text content (stop_reason: max_tokens)` | Reasoning used up the token budget. | Raise `maxTokens`, or lower `effort`. |
 | `OpenAI returned no content.` | OpenAI sent back an empty completion. | Retry, or raise `maxTokens`. |
+| `Cannot use import statement outside a module` | From Node, not this library: the file was run as CommonJS. | Name the file `.mjs`, or add `"type": "module"` to your `package.json`. |
 
 OpenAI's own API errors (bad key, rate limits) are thrown as-is by the
 `openai` SDK.
