@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { Effort, RefineOptions } from "../types.js";
+import type { Effort, RefineOptions, RefineResult } from "../types.js";
 
 const DEFAULT_MODEL = "claude-sonnet-5";
 const DEFAULT_MAX_TOKENS = 4096;
@@ -15,7 +15,7 @@ export async function runAnthropic(
   systemPrompt: string,
   defaults: { model?: string; maxTokens?: number; effort?: Effort },
   options?: RefineOptions
-): Promise<string> {
+): Promise<Omit<RefineResult, "character">> {
   const effort = options?.effort ?? defaults.effort;
 
   try {
@@ -45,7 +45,14 @@ export async function runAnthropic(
       );
     }
 
-    return textBlock.text;
+    return {
+      text: textBlock.text,
+      model: response.model,
+      usage: response.usage && {
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+      },
+    };
   } catch (error) {
     if (error instanceof Anthropic.AuthenticationError) {
       throw new Error("Anthropic rejected the API key. Check ANTHROPIC_API_KEY.");

@@ -370,6 +370,55 @@ describe("effort", () => {
   });
 });
 
+describe("usage and model", () => {
+  it("returns the model and normalized token usage from Anthropic", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    anthropicCreate.mockResolvedValue({
+      model: "claude-sonnet-5",
+      content: [{ type: "text", text: "mocked" }],
+      usage: { input_tokens: 2770, output_tokens: 77 },
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const result = await createDefiantJazz().dylan("hello");
+
+    expect(result).toEqual({
+      text: "mocked",
+      character: "Dylan G.",
+      model: "claude-sonnet-5",
+      usage: { inputTokens: 2770, outputTokens: 77 },
+    });
+  });
+
+  it("maps OpenAI's prompt/completion token names to the same shape", async () => {
+    process.env.OPENAI_API_KEY = "sk-test";
+    openaiCreate.mockResolvedValue({
+      model: "gpt-4o-mini-2024-07-18",
+      choices: [{ message: { content: "mocked openai" } }],
+      usage: { prompt_tokens: 2500, completion_tokens: 60, total_tokens: 2560 },
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const result = await createDefiantJazz().dylan("hello");
+
+    expect(result.model).toBe("gpt-4o-mini-2024-07-18");
+    expect(result.usage).toEqual({ inputTokens: 2500, outputTokens: 60 });
+  });
+
+  it("leaves usage undefined when the provider doesn't report it", async () => {
+    process.env.OPENAI_API_KEY = "sk-test";
+    openaiCreate.mockResolvedValue({
+      model: "gpt-4o-mini",
+      choices: [{ message: { content: "mocked openai" } }],
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const result = await createDefiantJazz().dylan("hello");
+
+    expect(result.usage).toBeUndefined();
+  });
+});
+
 describe("buildSystemPrompt", () => {
   it("includes character names regardless of the lore setting", async () => {
     const { buildSystemPrompt } = await import("../prompt.js");

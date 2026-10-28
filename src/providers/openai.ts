@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { RefineOptions } from "../types.js";
+import type { RefineOptions, RefineResult } from "../types.js";
 
 const DEFAULT_MODEL = "gpt-4o-mini";
 const DEFAULT_MAX_TOKENS = 4096;
@@ -15,7 +15,7 @@ export async function runOpenAi(
   systemPrompt: string,
   defaults: { model?: string; maxTokens?: number },
   options?: RefineOptions
-): Promise<string> {
+): Promise<Omit<RefineResult, "character">> {
   const completion = await client.chat.completions.create(
     {
       model: options?.model ?? defaults.model ?? DEFAULT_MODEL,
@@ -37,5 +37,12 @@ export async function runOpenAi(
     throw new Error("OpenAI returned no content.");
   }
 
-  return content;
+  return {
+    text: content,
+    model: completion.model,
+    usage: completion.usage && {
+      inputTokens: completion.usage.prompt_tokens,
+      outputTokens: completion.usage.completion_tokens,
+    },
+  };
 }

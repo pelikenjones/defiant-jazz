@@ -6,9 +6,17 @@ import type {
   Effort,
   RefineOptions,
   RefineResult,
+  TokenUsage,
 } from "./types.js";
 
-export type { CharacterKey, DefiantJazzOptions, Effort, RefineOptions, RefineResult };
+export type {
+  CharacterKey,
+  DefiantJazzOptions,
+  Effort,
+  RefineOptions,
+  RefineResult,
+  TokenUsage,
+};
 export { CHARACTERS, createDefiantJazz };
 
 let defaultInstance: DefiantJazz | null = null;

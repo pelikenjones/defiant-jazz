@@ -12,6 +12,10 @@ All notable changes to this package are documented here.
   behavior is unchanged. Setting it with the OpenAI provider throws rather
   than being silently ignored. The `Effort` type is exported and comes from
   the Anthropic SDK, so new levels arrive with SDK updates.
+- Results now include `model` (the model that answered, as reported by the
+  provider) and `usage: { inputTokens, outputTokens }`, normalized across
+  Anthropic and OpenAI. `outputTokens` includes reasoning tokens. Additive:
+  `text` and `character` are unchanged. `TokenUsage` type is exported.
 
 ## 0.6.2
 

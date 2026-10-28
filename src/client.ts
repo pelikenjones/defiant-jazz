@@ -108,12 +108,12 @@ export function createDefiantJazz(initialOptions: DefiantJazzOptions = {}): Defi
     const lore = options?.lore ?? config.lore ?? true;
     const systemPrompt = buildSystemPrompt(lore);
 
-    const resultText =
+    const result =
       provider === "anthropic"
         ? await runAnthropic(client as Anthropic, characterName, text, systemPrompt, defaults, options)
         : await runOpenAi(client as OpenAI, characterName, text, systemPrompt, defaults, options);
 
-    return { text: resultText, character: characterName };
+    return { ...result, character: characterName };
   }
 
   const fn = ((text: string, character: CharacterKey, options?: RefineOptions) =>

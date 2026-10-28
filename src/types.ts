@@ -7,9 +7,19 @@ export type Provider = "anthropic" | "openai";
 /** Anthropic effort level, taken from the SDK so new levels arrive with SDK updates. */
 export type Effort = NonNullable<Anthropic.OutputConfig["effort"]>;
 
+export interface TokenUsage {
+  inputTokens: number;
+  /** Includes any reasoning tokens the model spent before answering. */
+  outputTokens: number;
+}
+
 export interface RefineResult {
   text: string;
   character: string;
+  /** The model that answered, as reported by the provider. */
+  model: string;
+  /** Token counts for this request, when the provider reports them. */
+  usage?: TokenUsage;
 }
 
 export interface DefiantJazzOptions {
