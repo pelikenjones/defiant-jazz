@@ -100,7 +100,11 @@ export function createDefiantJazz(initialOptions: DefiantJazzOptions = {}): Defi
 
     const characterName = CHARACTERS[characterKey];
     const { provider, client } = getClient();
-    const defaults = { model: config.model, maxTokens: config.maxTokens };
+    const effort = options?.effort ?? config.effort;
+    if (effort !== undefined && provider === "openai") {
+      throw new Error("effort is only supported with the Anthropic provider.");
+    }
+    const defaults = { model: config.model, maxTokens: config.maxTokens, effort: config.effort };
     const lore = options?.lore ?? config.lore ?? true;
     const systemPrompt = buildSystemPrompt(lore);
 

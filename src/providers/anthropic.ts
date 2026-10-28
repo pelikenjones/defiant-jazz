@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { RefineOptions } from "../types.js";
+import type { Effort, RefineOptions } from "../types.js";
 
 const DEFAULT_MODEL = "claude-sonnet-5";
 const DEFAULT_MAX_TOKENS = 4096;
@@ -13,14 +13,17 @@ export async function runAnthropic(
   characterName: string,
   text: string,
   systemPrompt: string,
-  defaults: { model?: string; maxTokens?: number },
+  defaults: { model?: string; maxTokens?: number; effort?: Effort },
   options?: RefineOptions
 ): Promise<string> {
+  const effort = options?.effort ?? defaults.effort;
+
   try {
     const response = await client.messages.create(
       {
         model: options?.model ?? defaults.model ?? DEFAULT_MODEL,
         max_tokens: options?.maxTokens ?? defaults.maxTokens ?? DEFAULT_MAX_TOKENS,
+        ...(effort !== undefined && { output_config: { effort } }),
         system: systemPrompt,
         messages: [
           {

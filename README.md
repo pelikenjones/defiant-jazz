@@ -101,6 +101,23 @@ Per-call overrides work on both forms:
 await refine.dylan("Hello world", { model: 'claude-opus-5', maxTokens: 1024 });
 ```
 
+### Effort (Anthropic only)
+
+`effort` controls how much the model reasons before answering: `'low'`,
+`'medium'`, `'high'`, `'xhigh'` or `'max'`. Lower is cheaper and faster. Leave
+it unset to use the model's own default, which varies by model.
+
+```typescript
+const fast = createDefiantJazz({ effort: 'low' });
+await refine.dylan("Hello world", { effort: 'low' }); // per-call works too
+```
+
+- Setting `effort` with the OpenAI provider throws.
+- Not every model accepts every level (older models may reject `effort`
+  entirely); the API's error is passed through.
+- Reasoning tokens count toward `maxTokens`. At `xhigh` or `max`, raise
+  `maxTokens` if you see "returned no text content (stop_reason: max_tokens)".
+
 ## Characters
 
 ```typescript

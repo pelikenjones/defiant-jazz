@@ -315,6 +315,61 @@ describe("lore toggle", () => {
   });
 });
 
+describe("effort", () => {
+  it("omits output_config when effort is not set", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    anthropicCreate.mockResolvedValue({
+      content: [{ type: "text", text: "mocked" }],
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const dj = createDefiantJazz();
+    await dj.dylan("hello");
+
+    expect(anthropicCreate.mock.calls[0][0]).not.toHaveProperty("output_config");
+  });
+
+  it("sends an instance-level effort as output_config.effort", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    anthropicCreate.mockResolvedValue({
+      content: [{ type: "text", text: "mocked" }],
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const dj = createDefiantJazz({ effort: "low" });
+    await dj.dylan("hello");
+
+    expect(anthropicCreate.mock.calls[0][0].output_config).toEqual({ effort: "low" });
+  });
+
+  it("lets a per-call effort override the instance-level setting", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    anthropicCreate.mockResolvedValue({
+      content: [{ type: "text", text: "mocked" }],
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const dj = createDefiantJazz({ effort: "low" });
+    await dj.dylan("hello", { effort: "high" });
+
+    expect(anthropicCreate.mock.calls[0][0].output_config).toEqual({ effort: "high" });
+  });
+
+  it("throws on the OpenAI provider instead of silently ignoring effort", async () => {
+    process.env.OPENAI_API_KEY = "sk-test";
+
+    const { createDefiantJazz } = await import("../index.js");
+
+    await expect(createDefiantJazz({ effort: "low" }).dylan("hello")).rejects.toThrow(
+      /only supported with the Anthropic provider/
+    );
+    await expect(createDefiantJazz().dylan("hello", { effort: "low" })).rejects.toThrow(
+      /only supported with the Anthropic provider/
+    );
+    expect(openaiCreate).not.toHaveBeenCalled();
+  });
+});
+
 describe("buildSystemPrompt", () => {
   it("includes character names regardless of the lore setting", async () => {
     const { buildSystemPrompt } = await import("../prompt.js");
