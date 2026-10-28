@@ -6,6 +6,13 @@ All notable changes to this package are documented here.
 
 ### Changed
 
+- The OpenAI default model is now `gpt-6-luna`, replacing `gpt-4o-mini`.
+  In the Run 4 comparison ([model-comparison.md](model-comparison.md)),
+  `gpt-4o-mini` replied to the quote instead of rewriting it in 3 of 12
+  tries. `gpt-6-luna` stayed on task every time and costs about a third
+  less. Its replies are shorter and almost never name anything from the
+  show. To keep the old behavior, pass `model: 'gpt-4o-mini'`. Anthropic's
+  default is unchanged.
 - OpenAI errors are now friendly, matching Anthropic's. A bad key throws
   `OpenAI rejected the API key. Check OPENAI_API_KEY.`, a rate limit throws
   `OpenAI rate limit hit. Retry after a short delay.`, and any other API

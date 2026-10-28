@@ -266,7 +266,7 @@ describe("provider resolution", () => {
 describe("DEFAULT_MODELS", () => {
   it("exposes the model each provider runs when none is set", async () => {
     const { DEFAULT_MODELS } = await import("../index.js");
-    expect(DEFAULT_MODELS).toEqual({ anthropic: "claude-sonnet-5", openai: "gpt-4o-mini" });
+    expect(DEFAULT_MODELS).toEqual({ anthropic: "claude-sonnet-5", openai: "gpt-6-luna" });
     expect(Object.isFrozen(DEFAULT_MODELS)).toBe(true);
   });
 
