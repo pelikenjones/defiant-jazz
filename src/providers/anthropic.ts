@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { DEFAULT_MODELS } from "../defaults.js";
+import { buildUserMessage } from "../prompt.js";
+import { stripWrappingQuotes } from "../strip-quotes.js";
 import type { Effort, RefineOptions, RefineResult } from "../types.js";
 
 const DEFAULT_MODEL = DEFAULT_MODELS.anthropic;
@@ -29,7 +31,7 @@ export async function runAnthropic(
         messages: [
           {
             role: "user",
-            content: `Transform this quote in the style of ${characterName}: "${text}"`,
+            content: buildUserMessage(characterName, text),
           },
         ],
       },
@@ -47,7 +49,7 @@ export async function runAnthropic(
     }
 
     return {
-      text: textBlock.text,
+      text: stripWrappingQuotes(textBlock.text),
       model: response.model,
       usage: response.usage && {
         inputTokens: response.usage.input_tokens,

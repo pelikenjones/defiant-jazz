@@ -490,3 +490,42 @@ describe("buildSystemPrompt", () => {
     expect(buildSystemPrompt(false)).not.toMatch(/break room/);
   });
 });
+
+describe("wrapping quotes", () => {
+  it("strips quotes wrapping the Anthropic output and sends the input unquoted", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    anthropicCreate.mockResolvedValue({
+      content: [{ type: "text", text: '"I wanted to bring to your attention, \'the numbers are scary.\'"' }],
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const result = await createDefiantJazz().mark("the report is late");
+
+    expect(result.text).toBe("I wanted to bring to your attention, 'the numbers are scary.'");
+    const userMessage = anthropicCreate.mock.calls[0][0].messages[0].content;
+    expect(userMessage).toContain("<quote>\nthe report is late\n</quote>");
+    expect(userMessage).not.toContain('"the report is late"');
+  });
+
+  it("strips quotes wrapping the OpenAI output and sends the input unquoted", async () => {
+    process.env.OPENAI_API_KEY = "sk-test";
+    openaiCreate.mockResolvedValue({
+      choices: [{ message: { content: "“I wanted to bring to your attention…”" } }],
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const result = await createDefiantJazz().irving("the report is late");
+
+    expect(result.text).toBe("I wanted to bring to your attention…");
+    const userMessage = openaiCreate.mock.calls[0][0].messages[1].content;
+    expect(userMessage).toContain("<quote>\nthe report is late\n</quote>");
+    expect(userMessage).not.toContain('"the report is late"');
+  });
+
+  it("tells the model not to wrap its output, with or without lore", async () => {
+    const { buildSystemPrompt } = await import("../prompt.js");
+
+    expect(buildSystemPrompt(true)).toMatch(/no surrounding quotation marks/);
+    expect(buildSystemPrompt(false)).toMatch(/no surrounding quotation marks/);
+  });
+});

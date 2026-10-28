@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import { DEFAULT_MODELS } from "../defaults.js";
+import { buildUserMessage } from "../prompt.js";
+import { stripWrappingQuotes } from "../strip-quotes.js";
 import type { RefineOptions, RefineResult } from "../types.js";
 
 const DEFAULT_MODEL = DEFAULT_MODELS.openai;
@@ -25,7 +27,7 @@ export async function runOpenAi(
         { role: "system", content: systemPrompt },
         {
           role: "user",
-          content: `Transform this quote in the style of ${characterName}: "${text}"`,
+          content: buildUserMessage(characterName, text),
         },
       ],
     },
@@ -39,7 +41,7 @@ export async function runOpenAi(
   }
 
   return {
-    text: content,
+    text: stripWrappingQuotes(content),
     model: completion.model,
     usage: completion.usage && {
       inputTokens: completion.usage.prompt_tokens,
