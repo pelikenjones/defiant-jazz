@@ -5,7 +5,22 @@
 
 Rewrite any line of text in the voice of a *Severance* character, via Anthropic or OpenAI.
 
-Try it in your browser: [defiant-jazz.vercel.app](https://defiant-jazz.vercel.app)
+```javascript
+import { refine } from 'defiant-jazz';
+
+await refine.mark("They gave us pizza instead of raises");
+// => Yeah, they, uh... they gave us pizza instead of raises. So.
+//    That happened.
+
+await refine.milchick("They gave us pizza instead of raises");
+// => I was so pleased to facilitate this delicious, circular bread as a
+//    token of our boundless gratitude—let us consider it a charming
+//    little precursor to the next melon bar, shall we?
+```
+
+Each call returns an object; the line shown is its `text`. Setup takes
+three steps, below. Or try it in your browser first:
+[defiant-jazz.vercel.app](https://defiant-jazz.vercel.app)
 
 ## Quick start
 
