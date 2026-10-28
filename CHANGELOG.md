@@ -2,6 +2,22 @@
 
 All notable changes to this package are documented here.
 
+## 0.8.1
+
+### Fixed
+
+- `result.text` is no longer wrapped in its own quotation marks. Some
+  outputs came back as `"I wanted to bring to your attention…"` with the
+  quotes included, so apps that display results inside their own quotes
+  showed them doubled. Two changes, on both providers:
+  - The prompt now tells the model to output only the line, with no
+    surrounding quotation marks, and passes the input in a `<quote>` block
+    instead of inside quotes.
+  - As a safety net, one pair of quotes (`"…"`, `“…”`, `'…'`, `‘…’`)
+    wrapping the whole output is stripped. Quotes inside the text are kept,
+    including a line that starts and ends with two separate quoted spans,
+    such as `"Fine," he said, "whatever."`.
+
 ## 0.8.0
 
 ### Breaking
