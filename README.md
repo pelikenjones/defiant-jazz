@@ -118,6 +118,25 @@ await refine.dylan("Hello world", { effort: 'low' }); // per-call works too
 - Reasoning tokens count toward `maxTokens`. At `xhigh` or `max`, raise
   `maxTokens` if you see "returned no text content (stop_reason: max_tokens)".
 
+## Usage and cost
+
+Every result includes the model that answered and the request's token
+counts, normalized across providers:
+
+```typescript
+const result = await refine.dylan("Hello world");
+// {
+//   text: "...",
+//   character: "Dylan G.",
+//   model: "claude-sonnet-5",
+//   usage: { inputTokens: 2770, outputTokens: 77 },
+// }
+```
+
+`outputTokens` includes any reasoning tokens the model spent before answering
+(see [Effort](#effort-anthropic-only)). `usage` is omitted if the provider
+doesn't report it.
+
 ## Characters
 
 ```typescript
