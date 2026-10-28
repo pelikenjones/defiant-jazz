@@ -2,6 +2,25 @@
 
 All notable changes to this package are documented here.
 
+## 0.8.2
+
+### Fixed
+
+- Current OpenAI models work. The OpenAI provider sent `max_tokens`, which
+  GPT-5 and later reject with `400 Unsupported parameter: 'max_tokens'`, so
+  only the GPT-4 family worked. It now sends `max_completion_tokens`, which
+  both generations accept. The `maxTokens` option is unchanged.
+
+### Changed
+
+- README rewritten for first-time users: a short quick start, collapsed
+  setup details (keys, cost, `.env`), a plain-language options table, an
+  explanation of `usage` and tokens, equal Anthropic and OpenAI model
+  sections, and troubleshooting for every thrown error.
+- `package.json`: `homepage` now points at the demo,
+  <https://defiant-jazz.vercel.app>, and the description says
+  "Anthropic or OpenAI".
+
 ## 0.8.1
 
 ### Fixed
