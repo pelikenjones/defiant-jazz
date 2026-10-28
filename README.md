@@ -342,10 +342,10 @@ Opt-ins worth knowing about:
 
 ### OpenAI
 
-The default is `gpt-6-luna`. Version 0.8.2 and earlier use
-`gpt-4o-mini`. It was the cheapest of seven OpenAI models compared, and it
-stayed on task every time. The old default, `gpt-4o-mini`, replied to the
-quote instead of rewriting it in 3 of 12 tries. The full writeup is in
+The default is `gpt-6-luna`. It was the cheapest of seven OpenAI models
+compared, and it stayed on task every time. The old default, `gpt-4o-mini`
+(used by 0.8.2 and earlier), replied to the quote instead of rewriting it in
+3 of 12 tries. The full writeup is in
 [model-comparison.md](model-comparison.md#run-4--openai-models).
 
 Opt-ins worth knowing about:
