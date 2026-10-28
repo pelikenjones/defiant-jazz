@@ -1,7 +1,8 @@
 import OpenAI from "openai";
+import { DEFAULT_MODELS } from "../defaults.js";
 import type { RefineOptions, RefineResult } from "../types.js";
 
-const DEFAULT_MODEL = "gpt-4o-mini";
+const DEFAULT_MODEL = DEFAULT_MODELS.openai;
 const DEFAULT_MAX_TOKENS = 4096;
 
 export function createOpenAiClient(apiKey: string): OpenAI {

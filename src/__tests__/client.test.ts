@@ -184,11 +184,67 @@ describe("provider resolution", () => {
     });
 
     const { createDefiantJazz } = await import("../index.js");
-    const dj = createDefiantJazz({ apiKey: "sk-ant-explicit" });
+    const dj = createDefiantJazz({ provider: "anthropic", apiKey: "sk-ant-explicit" });
     await dj.dylan("hello");
 
     // The mock client stashes the constructor arg as `.apiKey`.
     expect(anthropicCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when both env keys are set and no provider is given", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    process.env.OPENAI_API_KEY = "sk-test";
+
+    const { createDefiantJazz } = await import("../index.js");
+    const dj = createDefiantJazz();
+
+    await expect(dj.dylan("hello")).rejects.toThrow(/Both ANTHROPIC_API_KEY and OPENAI_API_KEY/);
+    expect(anthropicCreate).not.toHaveBeenCalled();
+    expect(openaiCreate).not.toHaveBeenCalled();
+  });
+
+  it("throws when apiKey is passed without provider", async () => {
+    const { createDefiantJazz } = await import("../index.js");
+    const dj = createDefiantJazz({ apiKey: "sk-test" });
+
+    await expect(dj.dylan("hello")).rejects.toThrow(/apiKey requires provider/);
+    expect(anthropicCreate).not.toHaveBeenCalled();
+    expect(openaiCreate).not.toHaveBeenCalled();
+  });
+
+  it("recovers once configure() supplies the missing provider", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    process.env.OPENAI_API_KEY = "sk-test";
+    openaiCreate.mockResolvedValue({
+      choices: [{ message: { content: "mocked openai" } }],
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const dj = createDefiantJazz();
+    await expect(dj.dylan("hello")).rejects.toThrow(/Both/);
+
+    dj.configure({ provider: "openai" });
+    await expect(dj.dylan("hello")).resolves.toMatchObject({ text: "mocked openai" });
+  });
+});
+
+describe("DEFAULT_MODELS", () => {
+  it("exposes the model each provider runs when none is set", async () => {
+    const { DEFAULT_MODELS } = await import("../index.js");
+    expect(DEFAULT_MODELS).toEqual({ anthropic: "claude-sonnet-5", openai: "gpt-4o-mini" });
+    expect(Object.isFrozen(DEFAULT_MODELS)).toBe(true);
+  });
+
+  it("matches the model actually sent on a zero-config call", async () => {
+    process.env.OPENAI_API_KEY = "sk-test";
+    openaiCreate.mockResolvedValue({
+      choices: [{ message: { content: "mocked openai" } }],
+    });
+
+    const { createDefiantJazz, DEFAULT_MODELS } = await import("../index.js");
+    await createDefiantJazz().dylan("hello");
+
+    expect(openaiCreate.mock.calls[0][0]).toMatchObject({ model: DEFAULT_MODELS.openai });
   });
 });
 
@@ -231,7 +287,7 @@ describe("configure() / default instance", () => {
     });
 
     const { configure, refine } = await import("../index.js");
-    configure({ apiKey: "sk-ant-configured" });
+    configure({ provider: "anthropic", apiKey: "sk-ant-configured" });
 
     const result = await refine.dylan("hello");
     expect(result.text).toBe("mocked");

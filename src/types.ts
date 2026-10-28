@@ -23,7 +23,11 @@ export interface RefineResult {
 }
 
 export interface DefiantJazzOptions {
-  /** Explicit provider. Defaults to whichever API key is set (Anthropic first). */
+  /**
+   * Which API to call. Optional only when exactly one of `ANTHROPIC_API_KEY`
+   * or `OPENAI_API_KEY` is set and `apiKey` is not passed; when the choice
+   * would be ambiguous, the library throws rather than guess.
+   */
   provider?: Provider;
   apiKey?: string;
   model?: string;

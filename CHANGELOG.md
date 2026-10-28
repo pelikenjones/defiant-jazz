@@ -2,6 +2,26 @@
 
 All notable changes to this package are documented here.
 
+## 0.8.0
+
+### Breaking
+
+- The provider is no longer guessed when the choice is ambiguous. Two cases
+  that used to silently pick Anthropic now throw with a message naming the
+  fix:
+  - Both `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` set with no `provider`.
+    Pass `{ provider: 'anthropic' }` or `{ provider: 'openai' }`.
+  - `apiKey` passed without `provider`. Pass `provider` alongside it so the
+    key is never sent to the wrong service.
+
+  Zero-config use is unchanged: with exactly one env key set, that provider
+  is used, and `refine.dylan("...")` keeps working with no setup.
+
+### Added
+
+- `DEFAULT_MODELS` export: `{ anthropic: 'claude-sonnet-5', openai: 'gpt-4o-mini' }`,
+  the model each provider runs when `model` is not set.
+
 ## 0.7.0
 
 ### Added

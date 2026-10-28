@@ -1,4 +1,5 @@
 import { createDefiantJazz, type DefiantJazz } from "./client.js";
+import { DEFAULT_MODELS } from "./defaults.js";
 import { CHARACTERS } from "./prompt.js";
 import type {
   CharacterKey,
@@ -17,7 +18,7 @@ export type {
   RefineResult,
   TokenUsage,
 };
-export { CHARACTERS, createDefiantJazz };
+export { CHARACTERS, DEFAULT_MODELS, createDefiantJazz };
 
 let defaultInstance: DefiantJazz | null = null;
 
