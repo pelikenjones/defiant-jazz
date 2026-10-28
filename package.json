@@ -1,6 +1,6 @@
 {
   "name": "defiant-jazz",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "Transform quotes into Severance character voices using Claude or OpenAI",
   "license": "MIT",
   "author": "pelikenjones",

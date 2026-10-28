@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here.
 
+## 0.7.0
+
+### Added
+
+- `effort` option (Anthropic only), on both `createDefiantJazz()` /
+  `configure()` and per call. Sent as `output_config.effort`; when unset,
+  nothing is sent and each model keeps its own default, so existing
+  behavior is unchanged. Setting it with the OpenAI provider throws rather
+  than being silently ignored. The `Effort` type is exported and comes from
+  the Anthropic SDK, so new levels arrive with SDK updates.
+
 ## 0.6.2
 
 ### Changed

@@ -3,11 +3,12 @@ import { CHARACTERS } from "./prompt.js";
 import type {
   CharacterKey,
   DefiantJazzOptions,
+  Effort,
   RefineOptions,
   RefineResult,
 } from "./types.js";
 
-export type { CharacterKey, DefiantJazzOptions, RefineOptions, RefineResult };
+export type { CharacterKey, DefiantJazzOptions, Effort, RefineOptions, RefineResult };
 export { CHARACTERS, createDefiantJazz };
 
 let defaultInstance: DefiantJazz | null = null;
