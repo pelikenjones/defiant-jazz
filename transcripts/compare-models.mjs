@@ -26,6 +26,13 @@ const PRICES = {
   "claude-sonnet-5-5": [2, 10],
   "claude-haiku-5-5": [0.1, 0.5],
   "claude-opus-5-5": [4, 20],
+  "gpt-4o-mini": [0.15, 0.6],
+  "gpt-4o": [2.5, 10],
+  "gpt-4.1-mini": [0.4, 1.6],
+  "gpt-5-mini": [0.25, 2],
+  "gpt-6-luna": [0.1, 0.5],
+  "gpt-6.1-terra": [1, 5],
+  "gpt-6.1-sol": [2, 10],
 };
 
 const providerFor = (model) => (model.startsWith("claude-") ? "anthropic" : "openai");
