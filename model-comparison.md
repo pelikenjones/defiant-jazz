@@ -1,7 +1,11 @@
-# Model comparison: Opus 5 vs Sonnet 5 vs Haiku 4.5
+# Model comparison
 
-The Anthropic provider's default model is `claude-opus-5`
-([src/providers/anthropic.ts](src/providers/anthropic.ts)). Opus 5 is priced
+Runs 1–2 compared Opus 5, Sonnet 5 and Haiku 4.5 and set the default to
+Sonnet 5. Run 3 checked whether the 5.5 generation (Sonnet 5.5, Haiku 5.5,
+Opus 5.5) should replace it.
+
+When runs 1–2 were done, the Anthropic provider's default model was
+`claude-opus-5` ([src/providers/anthropic.ts](src/providers/anthropic.ts)). Opus 5 is priced
 at $5 / $25 per MTok (input/output) — a stylistic single-turn rewrite like
 this doesn't obviously need frontier-model reasoning, so it's worth checking
 whether a cheaper model holds the same quality before defaulting everyone who
@@ -11,7 +15,7 @@ This document is that check, and is expected to be rerun (see
 [Reproducing](#reproducing)) whenever the lore prompt changes materially,
 since a prompt edit can shift which model handles it best.
 
-## Method
+## Method (runs 1–2)
 
 Four quotes, one per character, run through all three models with identical
 system prompts (`lore: true`) via the package's own `createDefiantJazz` /
@@ -144,22 +148,88 @@ All three strong again. Haiku's forced "perpetuity wing" reference from
 run 1 is gone this time — a mild improvement, though it may just be
 prompt-sampling noise from one quote rather than a systematic fix.
 
+## Run 3 — Sonnet 5.5, Haiku 5.5, Opus 5.5
+
+Same prompt as run 2 (`e226d24`; unchanged since), same four quote/character
+pairs, `lore: true`. Two changes to the method:
+
+- **Three samples per pair** instead of one, so a single lucky or unlucky
+  draw doesn't decide a ranking.
+- **Cost and latency are measured**, from each response's token usage, not
+  estimated from list prices.
+
+Sonnet 5.5 was run twice: at its default effort, and at `effort: "low"` (the
+option added in 0.7.0). Full outputs, all 60 of them, are in
+[transcripts/model-comparison-run-3.md](transcripts/model-comparison-run-3.md).
+
+| Variant | Price (in/out per MTok) | Cost/call | Latency | Output tokens | Words |
+| --- | --- | --- | --- | --- | --- |
+| `claude-sonnet-5` (default) | $2 / $10 | $0.0063 | 1.9s | 77 | 41 |
+| `claude-sonnet-5-5` | $2 / $10 | $0.0081 | 3.4s | 261 | 36 |
+| `claude-sonnet-5-5`, `effort: "low"` | $2 / $10 | $0.0063 | 2.1s | 76 | 41 |
+| `claude-haiku-5-5` | $0.10 / $0.50 | $0.0004 | 2.1s | 276 | 42 |
+| `claude-opus-5-5` | $4 / $20 | $0.0172 | 4.8s | 308 | 54 |
+
+Input is about 2,770 tokens per call (the system prompt), so input dominates
+cost for the Sonnets.
+
+### Sonnet 5.5 vs Sonnet 5
+
+At its default effort Sonnet 5.5 spends roughly 180 tokens reasoning before
+each reply, which is where its extra 30% cost and slower replies come from.
+The replies themselves are about the same length. Quality is roughly even,
+but it varied less between samples: all three Irving outputs open "At long
+last…" (two "set down my pen"), and all three Milchick outputs end "until the
+next melon bar". Its best line was Mark's avoidance beat: *"if you don't ask,
+it's still sort of... undecided."*
+
+At `effort: "low"` the reasoning disappears (76 output tokens) and cost
+matches Sonnet 5 exactly. Dylan was the strongest of any variant (*"watching
+Gary chew on a pen cap"*), and Irving had a standout line (*"settles in me
+now like the quiet after a bugle's final note"*), but the sameness remained:
+all three Irving outputs open "It is done.", and Milchick again ended every
+sample on "until the next melon bar". Overall a tie with Sonnet 5.
+
+### Haiku 5.5
+
+A clear improvement on Haiku 4.5: no near-empty responses, and Milchick and
+Dylan were good. Rough edges remain:
+
+- Two of three Mark outputs repeat the input quote verbatim, then add a
+  "Quiet pause." stage direction, instead of transforming it.
+- Two Dylan outputs were near-duplicates ("call the Nobel committee… the
+  sky's blue").
+- One invented lore that isn't in the show: "Kier's a sad little guy in a
+  fish tank."
+
+### Opus 5.5
+
+The best writing of the run, especially Mark (*"they're very polite, which
+is somehow worse"*) and Irving (*"every column brought smartly into line like
+a company dressed for inspection"*). Also the most expensive (2.7× Sonnet 5),
+the slowest, and the wordiest; one Milchick reply ran 82 words.
+
 ## Conclusion
 
-**Lowered the Anthropic default to `claude-sonnet-5`**
-([src/providers/anthropic.ts](src/providers/anthropic.ts)). It was the most
-consistent performer across both runs — no regressions, no forced lore
-references, output quality on par with (occasionally exceeding) Opus 5 —
-while running faster and at 40% of Opus 5's cost.
+**The default stays `claude-sonnet-5`** (Run 3). Neither Sonnet 5.5 variant
+beat it: at default effort it costs 30% more and is slower for no quality
+gain, and at `effort: "low"` it ties on cost and quality. Switching would
+change how every user's output reads for no clear benefit. Revisit if
+Sonnet 5 is retired or the prompt changes materially.
 
-**Don't default to `claude-haiku-4-5`.** It's the cheapest option and mostly
-held up in run 1, but run 2 exposed a real failure mode: a near-empty
-response on the Mark/landlord quote that didn't engage with the prompt's
-new emotional-theme layer at all. That's the kind of silent quality
-cliff a package default shouldn't carry, especially since downstream users
-won't be running this comparison themselves. Haiku stays available as an
-explicit opt-in via `{ model: "claude-haiku-4-5" }` for users who want to
-trade some ceiling for cost and don't mind occasional rougher edges.
+Opt-ins worth knowing about:
+
+- **`claude-opus-5-5`** for the best writing, at 2.7× the cost and about
+  2.5× the latency.
+- **`claude-haiku-5-5`** for cost: about 15× cheaper than Sonnet 5 and much
+  better than Haiku 4.5, but expect the occasional untransformed quote or
+  invented lore.
+- **`claude-sonnet-5-5` with `effort: "low"`** is a reasonable alternative at
+  the same cost as the default.
+
+From runs 1–2, still true: don't default to Haiku 4.5 (the near-empty Mark
+response in run 2), and Sonnet 5 was chosen over Opus 5 at 40% of its cost
+with matching quality.
 
 The OpenAI default (`gpt-4o-mini`) is out of scope here — see the known
 limitation in [CHANGELOG.md](CHANGELOG.md) (0.6.0) — and deserves its own
@@ -167,16 +237,22 @@ comparison before being touched.
 
 ## Reproducing
 
-There's no committed script for this specific comparison (unlike
-`transcripts/run.mjs`, which is prompt-only and provider-agnostic by
-design). To rerun:
+```
+pnpm build
+node --env-file=.env transcripts/compare-models.mjs
+```
 
-1. `npm run build`
-2. Set `ANTHROPIC_API_KEY` (`.env` is gitignored and already has one for
-   local dev).
-3. Call `createDefiantJazz({ provider: "anthropic", model })` once per
-   model in `["claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"]`,
-   running the same quote/character pairs through each with `lore: true`.
+With no arguments it runs the Run 3 set. Pass variants to choose your own,
+as model IDs with an optional effort level:
+
+```
+node --env-file=.env transcripts/compare-models.mjs claude-sonnet-5 claude-sonnet-5-5@low
+```
+
+`SAMPLES=n` sets samples per pair (default 3). It writes a summary table and
+every output to `transcripts/model-comparison-latest.md`. Every call is a live
+API call; the full Run 3 set is 60 calls, about $0.45. Add any new model's
+price to `PRICES` in the script, or its cost shows as "n/a".
 
 Rerun whenever the lore prompt changes in a way that could plausibly shift
-which model handles it best — as it did between the two runs above.
+which model handles it best — as it did between runs 1 and 2.
