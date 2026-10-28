@@ -72,9 +72,18 @@ Quote: "My landlord raised my rent again." Nothing in the denotation table actua
 `;
 
 export function buildSystemPrompt(lore: boolean): string {
-  const closing = `Transform the given quote into the voice of the selected character. Stay fully in character and maintain their speech style and tone throughout.`;
+  const closing = `Transform the given quote into the voice of the selected character. Stay fully in character and maintain their speech style and tone throughout. Output only the transformed line itself, with no surrounding quotation marks and no preamble.`;
 
   return lore ? `${BASE_PROMPT}\n${LORE_BLOCK}\n${closing}` : `${BASE_PROMPT}\n\n${closing}`;
+}
+
+/**
+ * The user turn both providers send. The input goes in a tagged block rather
+ * than inside quotation marks, so the request doesn't model a quoted reply.
+ */
+export function buildUserMessage(characterName: string, text: string): string {
+  // Name mid-sentence: display names like "Mark S." already end in a period.
+  return `In the style of ${characterName}, transform the quote between the <quote> tags.\n\n<quote>\n${text}\n</quote>`;
 }
 
 /** @deprecated Use `buildSystemPrompt(true)` (or `false` to disable lore). Kept for backward compatibility. */
