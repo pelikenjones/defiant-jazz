@@ -31,8 +31,8 @@ Try it in your browser: [defiant-jazz.vercel.app](https://defiant-jazz.vercel.ap
    ```
 
    Paste your own key in place of `sk-ant-...` or `sk-...`. `export` sets it
-   for the current terminal only, so run your script from that same terminal. On Windows PowerShell, use
-   `$env:ANTHROPIC_API_KEY="sk-ant-..."`. The library reads `process.env`
+   for the current terminal only, so run your script from that same terminal.
+   On Windows PowerShell, use `$env:ANTHROPIC_API_KEY="sk-ant-..."`. The library reads `process.env`
    and does not load `.env` files itself; if your key lives in one, run
    `node --env-file=.env app.mjs` (Node 20.6+).
 
