@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/defiant-jazz)](https://www.npmjs.com/package/defiant-jazz)
 [![license](https://img.shields.io/npm/l/defiant-jazz)](LICENSE)
 
-Rewrite any line of text in the voice of a *Severance* character, via Claude or OpenAI.
+Rewrite any line of text in the voice of a *Severance* character, via Anthropic or OpenAI.
 
 Try it in your browser: [defiant-jazz.vercel.app](https://defiant-jazz.vercel.app)
 
@@ -67,7 +67,9 @@ await refine.milchick(quote);
 //    little precursor to the next melon bar, shall we?
 ```
 
-Try all four live in the [demo](https://defiant-jazz.vercel.app).
+Outputs in this README come from `claude-sonnet-5` unless marked;
+[Models](#models) has Mark's line on `gpt-4o-mini` too. Try all four live in
+the [demo](https://defiant-jazz.vercel.app).
 
 Picking a character at runtime? Pass the key to the generic form,
 `refine(text, "dylan")`. The `CHARACTERS` export maps each key to its
@@ -91,7 +93,7 @@ display name.
 ```typescript
 import { createDefiantJazz } from 'defiant-jazz';
 
-const jazz = createDefiantJazz({ maxTokens: 1024, lore: false });
+const jazz = createDefiantJazz({ provider: 'anthropic', maxTokens: 1024, lore: false });
 
 await jazz.irving("The meeting is cancelled", { model: 'claude-opus-5-5' });
 ```
@@ -109,7 +111,8 @@ const result = await refine.dylan("I need to focus on my work");
 // }
 ```
 
-- `model` is the model the provider reported answering with.
+- `model` is the model the provider reported answering with: here the
+  Anthropic default; on OpenAI it can be a dated snapshot ID.
 - `outputTokens` includes any reasoning tokens.
 - `usage` is omitted if the provider doesn't report it.
 - `text` is the bare line, with no wrapping quotation marks.
@@ -134,8 +137,7 @@ await refine.dylan("They gave us pizza instead of raises", { lore: false });
 Turn it off per call as above, or for a whole instance with
 `createDefiantJazz({ lore: false })`.
 
-Lore adherence is weaker on OpenAI's `gpt-4o-mini`; see the known limitation
-in [CHANGELOG.md](CHANGELOG.md#060) (0.6.0).
+Adherence is weaker on `gpt-4o-mini`; see [OpenAI](#openai) under Models.
 
 ## Choosing a provider
 
@@ -151,7 +153,11 @@ const claude = createDefiantJazz({
   model: 'claude-sonnet-5', // optional, this is the default
 });
 
-const gpt = createDefiantJazz({ provider: 'openai', apiKey: 'sk-...' });
+const gpt = createDefiantJazz({
+  provider: 'openai',
+  apiKey: 'sk-...',
+  model: 'gpt-4o-mini', // optional, this is the default
+});
 ```
 
 - `provider` set: that provider, with its key from `apiKey` or its env var.
@@ -178,6 +184,10 @@ import { DEFAULT_MODELS } from 'defiant-jazz';
 // { anthropic: 'claude-sonnet-5', openai: 'gpt-4o-mini' }
 ```
 
+Either default can be swapped with `model`, on an instance or per call.
+
+### Anthropic
+
 Sonnet 5 matched Opus 5's quality at 40% of the cost, and held up against the
 5.5 generation. The full writeup is in
 [model-comparison.md](model-comparison.md#conclusion).
@@ -190,20 +200,53 @@ Opt-ins worth knowing about:
 | `claude-haiku-5-5` | ~15x cheaper | Occasional untransformed quote or invented lore |
 | `claude-sonnet-5-5` with `effort: 'low'` | Same cost as the default | No clear quality gain |
 
-Same quote, default model versus Opus 5.5:
+### OpenAI
+
+The default is `gpt-4o-mini`. It hasn't been through a comparison like the
+Anthropic models have; one is planned. Until then there are no tested
+opt-ins to recommend.
+
+Switching works the same way:
 
 ```typescript
-// claude-sonnet-5 (default)
-await refine.mark("They gave us pizza instead of raises");
+const gpt = createDefiantJazz({ provider: 'openai', model: '<model-id>' });
+await gpt.dylan("Hello world", { model: '<model-id>' }); // per call works too
+```
+
+Worth knowing about:
+
+- Lore adherence is weaker on `gpt-4o-mini`: characters sometimes gesture
+  near a Lumon term instead of naming it, or skip one the quote earned. See
+  the known limitation in [CHANGELOG.md](CHANGELOG.md#060) (0.6.0).
+- In 0.8.1, only the GPT-4 family works (`gpt-4o`, `gpt-4.1` and their
+  minis). GPT-5 and later reject the `max_tokens` parameter the provider
+  sends, with "Unsupported parameter: 'max_tokens'". A fix is on the way.
+- `model` in the result is whatever OpenAI reports, which can be a dated
+  snapshot ID such as `gpt-4o-mini-2024-07-18`.
+
+### Same quote, three models
+
+```typescript
+const claude = createDefiantJazz({ provider: 'anthropic' });
+const gpt = createDefiantJazz({ provider: 'openai' });
+const quote = "They gave us pizza instead of raises";
+
+// claude-sonnet-5 (Anthropic default)
+await claude.mark(quote);
 // => Yeah, they, uh... they gave us pizza instead of raises. So.
 //    That happened.
 
 // claude-opus-5-5 (~2.7x the cost, slower)
-await refine.mark("They gave us pizza instead of raises", { model: 'claude-opus-5-5' });
+await claude.mark(quote, { model: 'claude-opus-5-5' });
 // => So, uh... they gave us pizza. Instead of raises. Which is... I mean,
 //    it was fine pizza. It's not like I was gonna say no to it. Just kind
 //    of sat there eating it, trying to remember what I thought I was going
 //    to do with the money.
+
+// gpt-4o-mini (OpenAI default)
+await gpt.mark(quote);
+// => I guess they thought pizza was a suitable substitute for a raise,
+//    which... well, it's not really the same thing, is it?
 ```
 
 ## Effort (Anthropic only)
@@ -212,7 +255,7 @@ await refine.mark("They gave us pizza instead of raises", { model: 'claude-opus-
 <summary>How much the model reasons before answering.</summary>
 
 ```typescript
-const fast = createDefiantJazz({ effort: 'low' });
+const fast = createDefiantJazz({ provider: 'anthropic', effort: 'low' });
 await refine.dylan("Hello world", { effort: 'low' }); // per call works too
 ```
 
