@@ -55,7 +55,8 @@ for (const variant of variants) {
     for (let sample = 1; sample <= samples; sample++) {
       const start = Date.now();
       const result = await dj(quote, character);
-      rows.push({ variant, model, quote, character, sample, ms: Date.now() - start, ...result });
+      // result.character is the display name; keep the key the sections filter on.
+      rows.push({ ...result, variant, quote, character, sample, ms: Date.now() - start });
       process.stderr.write(`${variant} ${character} #${sample}\n`);
     }
   }
