@@ -177,6 +177,25 @@ describe("provider resolution", () => {
     expect(anthropicCreate).not.toHaveBeenCalled();
   });
 
+  it("sends max_completion_tokens (not max_tokens) to OpenAI", async () => {
+    process.env.OPENAI_API_KEY = "sk-test";
+    openaiCreate.mockResolvedValue({
+      choices: [{ message: { content: "mocked openai" } }],
+    });
+
+    const { createDefiantJazz } = await import("../index.js");
+    const dj = createDefiantJazz({ provider: "openai" });
+    await dj.dylan("hello");
+    await dj.dylan("hello", { maxTokens: 123 });
+
+    const defaultBody = openaiCreate.mock.calls[0][0];
+    const overrideBody = openaiCreate.mock.calls[1][0];
+    expect(defaultBody.max_completion_tokens).toBe(4096);
+    expect(overrideBody.max_completion_tokens).toBe(123);
+    expect(defaultBody).not.toHaveProperty("max_tokens");
+    expect(overrideBody).not.toHaveProperty("max_tokens");
+  });
+
   it("prefers an explicit apiKey option over env vars", async () => {
     process.env.ANTHROPIC_API_KEY = "sk-ant-env";
     anthropicCreate.mockResolvedValue({

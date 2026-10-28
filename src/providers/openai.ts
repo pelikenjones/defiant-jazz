@@ -22,7 +22,7 @@ export async function runOpenAi(
   const completion = await client.chat.completions.create(
     {
       model: options?.model ?? defaults.model ?? DEFAULT_MODEL,
-      max_tokens: options?.maxTokens ?? defaults.maxTokens ?? DEFAULT_MAX_TOKENS,
+      max_completion_tokens: options?.maxTokens ?? defaults.maxTokens ?? DEFAULT_MAX_TOKENS,
       messages: [
         { role: "system", content: systemPrompt },
         {
