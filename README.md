@@ -8,14 +8,15 @@ Rewrite any line of text in the voice of a *Severance* character, via Anthropic 
 ```javascript
 import { refine } from 'defiant-jazz';
 
-await refine.mark("They gave us pizza instead of raises");
-// => Yeah, they, uh... they gave us pizza instead of raises. So.
-//    That happened.
+await refine.dylan("This meeting could have been an email");
+// => Fun fact: this meeting could've been an email. A short one. Like,
+//    two words long.
 
-await refine.milchick("They gave us pizza instead of raises");
-// => I was so pleased to facilitate this delicious, circular bread as a
-//    token of our boundless gratitude—let us consider it a charming
-//    little precursor to the next melon bar, shall we?
+await refine.milchick("This meeting could have been an email");
+// => I must say, there's a part of me that wonders whether the splendid
+//    contents of this gathering might have been just as splendidly
+//    conveyed via a well-crafted electronic correspondence—but oh, how I
+//    do cherish the opportunity to see all your lovely faces nonetheless!
 ```
 
 Each call returns an object; the line shown is its `text`. Setup takes
@@ -222,6 +223,16 @@ tokens instead of 2.8k), so each call is cheaper. See
 [Reading `usage`](#reading-usage).
 
 Adherence is weaker on `gpt-4o-mini`; see [OpenAI](#openai) under Models.
+
+One for the fans, unprompted and unedited:
+
+```typescript
+await refine.milchick("The printer is jammed again");
+// => It appears our printer has, once again, elected to express its own
+//    small act of defiant jazz—so if we could all extend it a bit of
+//    patience while I coax it back into compliance, I'd be ever so
+//    grateful.
+```
 
 ## Choosing a provider
 
