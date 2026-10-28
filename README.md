@@ -342,9 +342,18 @@ Opt-ins worth knowing about:
 
 ### OpenAI
 
-The default is `gpt-4o-mini`. It hasn't been through a comparison like the
-Anthropic models have; one is planned. Until then there are no tested
-opt-ins to recommend.
+The default is `gpt-4o-mini`. In the comparison it was the weakest of seven
+OpenAI models: in 3 of 12 tries it replied to the quote instead of rewriting
+it. The full writeup is in
+[model-comparison.md](model-comparison.md#run-4--openai-models).
+
+Opt-ins worth knowing about:
+
+| Model | Good for | Trade-off |
+| --- | --- | --- |
+| `gpt-6-luna` | Cheapest, and stayed on task every time | Almost never names anything from the show |
+| `gpt-6.1-sol` | Best writing on OpenAI | ~14x the default's cost (still less than `claude-sonnet-5`); no lore |
+| `gpt-4o` | Most natural lore on OpenAI | ~16x the default's cost |
 
 Switching works the same way:
 
@@ -355,9 +364,10 @@ await gpt.dylan("Hello world", { model: '<model-id>' }); // per call works too
 
 Worth knowing about:
 
-- Lore adherence is weaker on `gpt-4o-mini`: characters sometimes gesture
-  near a Lumon term instead of naming it, or skip one the quote earned. See
-  the known limitation in [CHANGELOG.md](CHANGELOG.md#060) (0.6.0).
+- Lore is weaker on every OpenAI model tested, not just `gpt-4o-mini`: a
+  term from the show is either rare or forced in where it doesn't fit. See
+  the known limitation in [CHANGELOG.md](CHANGELOG.md#060) (0.6.0). If lore
+  matters to you, use Claude.
 - GPT-5 and later need 0.8.2 or later. On 0.8.1 and earlier they fail with
   "Unsupported parameter: 'max_tokens'"; only the GPT-4 family (`gpt-4o`,
   `gpt-4.1` and their minis) works there.
