@@ -8,68 +8,102 @@ Rewrite any line of text in the voice of a *Severance* character, via Anthropic 
 ```javascript
 import { refine } from 'defiant-jazz';
 
-await refine.dylan("This meeting could have been an email");
+const dylan = await refine.dylan("This meeting could have been an email");
+console.log(dylan.text);
 // => Fun fact: this meeting could've been an email. A short one. Like,
 //    two words long.
 
-await refine.milchick("This meeting could have been an email");
+const milchick = await refine.milchick("This meeting could have been an email");
+console.log(milchick.text);
 // => I must say, there's a part of me that wonders whether the splendid
 //    contents of this gathering might have been just as splendidly
 //    conveyed via a well-crafted electronic correspondence—but oh, how I
 //    do cherish the opportunity to see all your lovely faces nonetheless!
 ```
 
-Each call returns an object; the line shown is its `text`. Setup takes
-three steps, below. Or try it in your browser first:
+*Severance* is a TV show about office workers at a company called Lumon; you
+don't need to have seen it. To try it in your browser first:
 [defiant-jazz.vercel.app](https://defiant-jazz.vercel.app)
 
 ## Quick start
 
-1. Install it. Needs Node 20 or later. The package is ESM only: it ships no
-   CommonJS build, so load it with `import`, not `require()`.
+```bash
+npm install defiant-jazz
+export ANTHROPIC_API_KEY=sk-ant-...   # or OPENAI_API_KEY=sk-... (set one, not both)
+```
 
-   ```bash
-   npm install defiant-jazz
-   ```
+```javascript
+// app.mjs
+import { refine } from 'defiant-jazz';
 
-2. Get an API key and set it as an environment variable (env var). The
-   library doesn't do the rewriting itself; it sends your text to Anthropic's
-   or OpenAI's API (the "provider") using your key, and the provider bills
-   your account for each call. Keys come from the provider's console:
-   [platform.claude.com](https://platform.claude.com) for Anthropic,
-   [platform.openai.com/api-keys](https://platform.openai.com/api-keys) for
-   OpenAI.
+const { text } = await refine.dylan("I need to focus on my work");
+console.log(text);
+// => Yeah, gonna need to lock in here, chief—quit yappin' so I can go
+//    stare at some numbers and pretend they mean something.
+```
 
-   ```bash
-   export ANTHROPIC_API_KEY=sk-ant-...
-   # or, for OpenAI:
-   export OPENAI_API_KEY=sk-...
-   ```
+```bash
+node app.mjs
+```
 
-   Paste your own key in place of `sk-ant-...` or `sk-...`. `export` sets it
-   for the current terminal only, so run your script from that same terminal.
-   On Windows PowerShell, use `$env:ANTHROPIC_API_KEY="sk-ant-..."`. The library reads `process.env`
-   and does not load `.env` files itself; if your key lives in one, run
-   `node --env-file=.env app.mjs` (Node 20.6+).
-
-   For this quick start, set exactly one of the two. With both set and no
-   `provider` option, the library won't guess which account to bill; see
-   [Choosing a provider](#choosing-a-provider).
-
-3. Save this as `app.mjs` and run `node app.mjs`:
-
-   ```javascript
-   import { refine } from 'defiant-jazz';
-
-   const result = await refine.dylan("I need to focus on my work");
-   console.log(result.text);
-   // => Yeah, gonna need to lock in here, chief—quit yappin' so I can go
-   //    stare at some numbers and pretend they mean something.
-   ```
-
-   Your line will read differently: the model writes a new one on every call.
-
+Your line will read differently: the model writes a new one on every call.
 That's the whole onboarding. No wellness session required.
+
+New to API keys, on Windows, or keeping your key in a `.env` file? See
+[Setup details](#setup-details).
+
+## Setup details
+
+<details>
+<summary>Requirements, API keys, cost, and other ways to set the key.</summary>
+
+**Requirements.** Node 20 or later. The package is ESM only, so load it with
+`import`, not `require()`. The file must end in `.mjs`, or your
+`package.json` needs `"type": "module"`; otherwise see the first row of
+[Troubleshooting](#troubleshooting).
+
+**Getting a key.** The library doesn't do the rewriting itself. It sends your
+text to Anthropic's or OpenAI's API (the "provider") with your key, and the
+provider bills your account for each call. Keys come from the provider's
+console: [platform.claude.com](https://platform.claude.com) for Anthropic,
+[platform.openai.com/api-keys](https://platform.openai.com/api-keys) for
+OpenAI. A new account may need billing set up or credit added before the
+first call works.
+
+**Cost.** Providers bill by the token, a chunk of a few characters. On the
+default Anthropic model, `claude-sonnet-5`, a call costs under a cent at the
+time of writing: about 2.8k input tokens and ~50 output tokens, at $2 and $10
+per million, comes to about $0.006. See [Reading `usage`](#reading-usage) for
+what's counted, and the [Anthropic](https://claude.com/pricing) and
+[OpenAI](https://openai.com/api/pricing) pricing pages for current prices.
+
+**Setting the key.** Pick one provider and set its key as an environment
+variable (env var), pasting your own key in place of the placeholder.
+
+Anthropic:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+OpenAI:
+
+```bash
+export OPENAI_API_KEY=sk-...
+```
+
+`export` lasts only for the current terminal, so run your script from that
+same terminal. On Windows PowerShell, use
+`$env:ANTHROPIC_API_KEY="sk-ant-..."` instead. If both keys are set, the
+library stops with an error rather than guess which account to bill, until
+you tell it which provider to use; see
+[Choosing a provider](#choosing-a-provider).
+
+**`.env` files.** The library reads `process.env` and doesn't load `.env`
+files itself. If your key lives in one, run `node --env-file=.env app.mjs`
+(Node 20.6+).
+
+</details>
 
 ## Meet the refiners
 
@@ -82,9 +116,13 @@ Four voices, one department. The work is mysterious and important.
 | `refine.dylan` | `dylan` | Dylan G. | Quick-witted, sarcastic, irreverent |
 | `refine.milchick` | `milchick` | Mr. Milchick | Unnervingly cheerful, hyper-cordial, professional |
 
+Examples from here on often skip the `import` line, and show each result's
+`text` after `// =>`. Everything they use (`refine`, `createDefiantJazz`,
+`DEFAULT_MODELS`) is a named export of `'defiant-jazz'`.
+
 Same line, all four:
 
-```typescript
+```javascript
 const quote = "They gave us pizza instead of raises";
 
 await refine.mark(quote);
@@ -111,37 +149,36 @@ Outputs in this README come from `claude-sonnet-5` unless marked;
 [Models](#models) has Mark's line on `gpt-4o-mini` too. Try all four live in
 the [demo](https://defiant-jazz.vercel.app).
 
-Later examples often skip the `import` line. Everything they use
-(`refine`, `createDefiantJazz`, `DEFAULT_MODELS`) is a named export of
-`'defiant-jazz'`.
-
 Picking a character at runtime? Pass the character key to the generic form,
 `refine(text, "dylan")`. The `CHARACTERS` export maps each character key to
 its display name.
 
 ## Options
 
+Two terms first. An **instance** is the object you call refine methods on:
+`refine` itself is a ready-made one, and `createDefiantJazz()` makes more.
+A **token** is a chunk of a few characters, the unit providers measure and
+bill text in.
+
+The "Set on" column says where an option can go:
+
+- **instance**: passed once to `createDefiantJazz(options)` (or to
+  `configure(options)`), and applied to every call that instance makes.
+- **call**: passed as the last argument to a single refine call, such as
+  `refine.dylan(text, { lore: false })`, and applied to that call only. When
+  an option is set on both, the per-call value wins.
+
 | Option | Set on | Default | Notes |
 | --- | --- | --- | --- |
 | `provider` | instance | inferred from env vars | Which API to call: `'anthropic'` or `'openai'`. See [Choosing a provider](#choosing-a-provider). |
 | `apiKey` | instance | `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Your key for that provider. Requires `provider`. |
 | `model` | instance, call | `claude-sonnet-5` / `gpt-4o-mini` | Which of the provider's models writes the reply. See [Models](#models). |
-| `maxTokens` | instance, call | `4096` | Caps how long the reply can be, in output tokens (reasoning tokens included). Input is not capped. See [What you get back](#what-you-get-back). |
+| `maxTokens` | instance, call | `4096` | Caps how long the reply can be, in output tokens (a token is a few characters of text; reasoning tokens included). Input is not capped. See [What you get back](#what-you-get-back). |
 | `effort` | instance, call | unset (model default) | How much the model reasons before answering. Anthropic only. See [Effort](#effort-anthropic-only). |
 | `lore` | instance, call | `true` | Whether characters may use Lumon vocabulary. See [Lore](#lore). |
 | `signal` | call | none | An `AbortSignal` to cancel the request, e.g. `AbortSignal.timeout(10_000)` to give up after 10 seconds. |
 
-The "Set on" column says where an option can go:
-
-- **instance**: passed once to `createDefiantJazz(options)` (or to
-  `configure(options)`), and applied to every call that instance makes. An
-  instance is the object you call refine methods on; `refine` itself is a
-  ready-made one.
-- **call**: passed as the last argument to a single refine call, such as
-  `refine.dylan(text, { lore: false })`, and applied to that call only. When
-  an option is set on both, the per-call value wins.
-
-```typescript
+```javascript
 import { createDefiantJazz } from 'defiant-jazz';
 
 // Every call on `jazz` gets these settings unless the call overrides them.
@@ -155,11 +192,11 @@ await jazz.irving("The meeting is cancelled", { model: 'claude-opus-5-5' });
 ## What you get back
 
 Every refine call returns (once awaited) an object like the one below. This
-example is its own call, not the `jazz` instance above: it uses the shared `refine`, with
-only `ANTHROPIC_API_KEY` set and every option at its default
+is the Quick start call, with the whole result shown: the shared `refine`,
+only `ANTHROPIC_API_KEY` set, and every option at its default
 (`claude-sonnet-5`, lore on, `maxTokens` 4096).
 
-```typescript
+```javascript
 const result = await refine.dylan("I need to focus on my work");
 // {
 //   text: "Yeah, gonna need to lock in here, chief—quit yappin' so I can go
@@ -203,7 +240,8 @@ parties, Kier) when a quote's situation actually calls for it. It's
 restrained on purpose: usually zero references, at most one, and only when it
 fits.
 
-```typescript
+```javascript
+// Lore on (the default): the same Dylan line as in Meet the refiners.
 await refine.dylan("They gave us pizza instead of raises");
 // => Pizza. For raises. That's the trade. Still ate four slices—not
 //    exactly a waffle party, but hey, I'm not made of stone.
@@ -225,7 +263,7 @@ Adherence is weaker on `gpt-4o-mini`; see [OpenAI](#openai) under Models.
 
 One for the fans, unprompted and unedited:
 
-```typescript
+```javascript
 await refine.milchick("The printer is jammed again");
 // => It appears our printer has, once again, elected to express its own
 //    small act of defiant jazz—so if we could all extend it a bit of
@@ -238,7 +276,7 @@ await refine.milchick("The printer is jammed again");
 The library will not guess whose account to bill. When the choice is
 ambiguous, it throws and tells you exactly what to pass.
 
-```typescript
+```javascript
 import { createDefiantJazz } from 'defiant-jazz';
 
 const claude = createDefiantJazz({
@@ -254,6 +292,9 @@ const gpt = createDefiantJazz({
 });
 ```
 
+Don't paste a real key into code you commit. Keep it in an env var, and
+either leave `apiKey` out or read it from `process.env` as shown below.
+
 - `provider` set: that provider, with its key from `apiKey` or its env var.
 - `provider` omitted, exactly one of the two env vars set: that provider.
 - `provider` omitted, both env vars set, or neither: throws.
@@ -262,7 +303,7 @@ const gpt = createDefiantJazz({
 Only those two env var names are read. For a key stored elsewhere, read it
 yourself and pass it in:
 
-```typescript
+```javascript
 createDefiantJazz({ provider: 'openai', apiKey: process.env.MY_TEAM_OPENAI_KEY });
 ```
 
@@ -274,7 +315,7 @@ specific provider, per-request keys, a different model, tests.
 
 ## Models
 
-```typescript
+```javascript
 import { DEFAULT_MODELS } from 'defiant-jazz';
 // { anthropic: 'claude-sonnet-5', openai: 'gpt-4o-mini' }
 ```
@@ -286,6 +327,10 @@ Either default can be swapped with `model`, on an instance or per call.
 Sonnet 5 matched Opus 5's quality at 40% of the cost, and held up against the
 5.5 generation. The full writeup is in
 [model-comparison.md](model-comparison.md#conclusion).
+
+Model IDs carry the generation number: `claude-sonnet-5-5` is Sonnet 5.5, a
+newer generation than the default `claude-sonnet-5`, not a typo. The same
+goes for `claude-opus-5-5` and `claude-haiku-5-5`.
 
 Opt-ins worth knowing about:
 
@@ -303,7 +348,7 @@ opt-ins to recommend.
 
 Switching works the same way:
 
-```typescript
+```javascript
 const gpt = createDefiantJazz({ provider: 'openai', model: '<model-id>' });
 await gpt.dylan("Hello world", { model: '<model-id>' }); // per call works too
 ```
@@ -325,7 +370,7 @@ This example uses both providers, so it needs both `ANTHROPIC_API_KEY` and
 `OPENAI_API_KEY` set. That's allowed here: the both-keys error only happens
 when `provider` is left out.
 
-```typescript
+```javascript
 const claude = createDefiantJazz({ provider: 'anthropic' });
 const gpt = createDefiantJazz({ provider: 'openai' });
 const quote = "They gave us pizza instead of raises";
@@ -353,7 +398,7 @@ await gpt.mark(quote);
 <details>
 <summary>How much the model reasons before answering.</summary>
 
-```typescript
+```javascript
 // On an instance: every call on `fast` uses low effort.
 const fast = createDefiantJazz({ provider: 'anthropic', effort: 'low' });
 await fast.dylan("Hello world");
@@ -383,6 +428,7 @@ await refine.dylan("Hello world", { effort: 'low' });
 
 | Error starts with | Why | Fix |
 | --- | --- | --- |
+| `Cannot use import statement outside a module` | From Node, not this library: the file was run as CommonJS. | Name the file `.mjs`, or add `"type": "module"` to your `package.json`. |
 | `No API key found.` | No `provider`/`apiKey`, and neither env var is set. | Set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`, or pass `provider` and `apiKey`. |
 | `Both ANTHROPIC_API_KEY and OPENAI_API_KEY are set.` | Two possible providers and no `provider`. | Pass `provider: 'anthropic'` or `provider: 'openai'`. |
 | `apiKey requires provider` | `apiKey` was passed without `provider`. | Add `provider` alongside `apiKey`. |
@@ -396,10 +442,13 @@ await refine.dylan("Hello world", { effort: 'low' });
 | `Anthropic API error (` | Any other Anthropic API error, with its status and message. | Read the message; a model rejecting `effort` lands here. |
 | `Anthropic returned no text content (stop_reason: max_tokens)` | Reasoning used up the token budget. | Raise `maxTokens`, or lower `effort`. |
 | `OpenAI returned no content.` | OpenAI sent back an empty completion. | Retry, or raise `maxTokens`. |
-| `Cannot use import statement outside a module` | From Node, not this library: the file was run as CommonJS. | Name the file `.mjs`, or add `"type": "module"` to your `package.json`. |
 
 OpenAI's own API errors (bad key, rate limits) are thrown as-is by the
 `openai` SDK.
+
+An account with no credit or billing set up fails on the first call: as
+`Anthropic API error (...)` on Anthropic, or as the `openai` SDK's own error
+on OpenAI. The fix is adding credit in the provider's console.
 
 </details>
 
