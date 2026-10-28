@@ -28,15 +28,21 @@ await refine("Hello world", "dylan");
 ```
 
 Set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` in your environment and you're done —
-whichever is present is used automatically (Anthropic first if both are set).
+whichever one is present is used. If both are set, the library won't pick for
+you; pass `provider` instead (see [Choosing a provider](#choosing-a-provider)).
 
 **Default models: `claude-sonnet-5` (Anthropic), `gpt-4o-mini` (OpenAI).**
 Sonnet 5 was chosen over Opus 5 after a head-to-head comparison found
 matching output quality at 40% of the cost — see
 [model-comparison.md](model-comparison.md) for the full writeup, including a
 documented regression on Haiku 4.5 that ruled it out as a default. Override
-with `model` on `createDefiantJazz()` or per call; see
-[Choosing a provider](#choosing-a-provider).
+with `model` on `createDefiantJazz()` or per call. The defaults are also
+exported, so you can check what a zero-config call will run:
+
+```typescript
+import { DEFAULT_MODELS } from 'defiant-jazz';
+// { anthropic: 'claude-sonnet-5', openai: 'gpt-4o-mini' }
+```
 
 ## Lore
 
@@ -91,7 +97,28 @@ await claude.dylan("Hello world");
 await gpt.dylan("Hello world");
 ```
 
-`refine` is a shared default instance using auto-detected credentials. Use
+How the provider is chosen:
+
+- `provider` set → that provider. Its key comes from `apiKey`, or from
+  `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` if `apiKey` is omitted.
+- `provider` omitted, exactly one env key set → that provider.
+- `provider` omitted, both env keys set → throws. The library never decides
+  whose account gets billed.
+- `apiKey` passed without `provider` → throws, so a key is never sent to the
+  wrong service.
+
+Only those two env var names are read. To use a key stored under a different
+name, read it yourself and pass it as `apiKey`:
+
+```typescript
+const gpt = createDefiantJazz({
+  provider: 'openai',
+  apiKey: process.env.MY_TEAM_OPENAI_KEY,
+});
+```
+
+`refine` is a shared default instance that follows the same rules; point it at
+a provider with `refine.configure({ provider: 'openai' })`. Use
 `createDefiantJazz()` whenever you need an isolated instance — a specific
 provider, different API keys per request, a non-default model, testing.
 

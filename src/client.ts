@@ -31,16 +31,31 @@ function resolveProvider(options: DefiantJazzOptions): {
     return { provider: options.provider, apiKey };
   }
 
+  // No explicit provider. Only infer one when there's exactly one candidate;
+  // never guess between two, since that picks whose account gets billed.
   if (options.apiKey) {
-    return { provider: "anthropic", apiKey: options.apiKey };
+    throw new Error(
+      "apiKey requires provider so the key isn't sent to the wrong service. " +
+        "Pass { provider: 'anthropic' } or { provider: 'openai' } alongside it."
+    );
   }
 
-  if (process.env.ANTHROPIC_API_KEY) {
-    return { provider: "anthropic", apiKey: process.env.ANTHROPIC_API_KEY };
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+
+  if (anthropicKey && openaiKey) {
+    throw new Error(
+      "Both ANTHROPIC_API_KEY and OPENAI_API_KEY are set. " +
+        "Pass { provider: 'anthropic' } or { provider: 'openai' } to choose."
+    );
   }
 
-  if (process.env.OPENAI_API_KEY) {
-    return { provider: "openai", apiKey: process.env.OPENAI_API_KEY };
+  if (anthropicKey) {
+    return { provider: "anthropic", apiKey: anthropicKey };
+  }
+
+  if (openaiKey) {
+    return { provider: "openai", apiKey: openaiKey };
   }
 
   throw new Error(
