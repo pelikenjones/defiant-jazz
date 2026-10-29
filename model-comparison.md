@@ -326,8 +326,8 @@ Anthropic default, it has a real defect: it missed the task in 3 of 12
 outputs by replying to Mark's quote instead of rewriting it. `gpt-6-luna`
 stayed on task all 12 times, costs about a third less, and reads at least as
 well. The trade-off is lore: luna almost never names anything from the show,
-but neither does `gpt-4o-mini`. Changing the default is proposed separately
-from this write-up, because it changes every OpenAI user's output.
+but neither does `gpt-4o-mini`. **The OpenAI default is now `gpt-6-luna`**
+(after 0.8.2). To keep the old behavior, pass `model: 'gpt-4o-mini'`.
 
 OpenAI opt-ins worth knowing about:
 

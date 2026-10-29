@@ -146,7 +146,7 @@ await refine.milchick(quote);
 ```
 
 Outputs in this README come from `claude-sonnet-5` unless marked;
-[Models](#models) has Mark's line on `gpt-4o-mini` too. Try all four live in
+[Models](#models) has Mark's line on `gpt-6-luna` too. Try all four live in
 the [demo](https://defiant-jazz.vercel.app).
 
 Picking a character at runtime? Pass the character key to the generic form,
@@ -172,7 +172,7 @@ The "Set on" column says where an option can go:
 | --- | --- | --- | --- |
 | `provider` | instance | inferred from env vars | Which API to call: `'anthropic'` or `'openai'`. See [Choosing a provider](#choosing-a-provider). |
 | `apiKey` | instance | `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Your key for that provider. Requires `provider`. |
-| `model` | instance, call | `claude-sonnet-5` / `gpt-4o-mini` | Which of the provider's models writes the reply. See [Models](#models). |
+| `model` | instance, call | `claude-sonnet-5` / `gpt-6-luna` | Which of the provider's models writes the reply. See [Models](#models). |
 | `maxTokens` | instance, call | `4096` | Caps how long the reply can be, in output tokens (a token is a few characters of text; reasoning tokens included). Input is not capped. See [What you get back](#what-you-get-back). |
 | `effort` | instance, call | unset (model default) | How much the model reasons before answering. Anthropic only. See [Effort](#effort-anthropic-only). |
 | `lore` | instance, call | `true` | Whether characters may use Lumon vocabulary. See [Lore](#lore). |
@@ -259,7 +259,7 @@ Turning lore off also makes each call's input about 70% smaller (roughly 0.8k
 tokens instead of 2.8k), so each call is cheaper. See
 [Reading `usage`](#reading-usage).
 
-Adherence is weaker on `gpt-4o-mini`; see [OpenAI](#openai) under Models.
+Adherence is weaker on OpenAI models; see [OpenAI](#openai) under Models.
 
 One for the fans, unprompted and unedited:
 
@@ -288,7 +288,7 @@ const claude = createDefiantJazz({
 const gpt = createDefiantJazz({
   provider: 'openai',
   apiKey: 'sk-...', // optional, falls back to OPENAI_API_KEY
-  model: 'gpt-4o-mini', // optional, this is the default
+  model: 'gpt-6-luna', // optional, this is the default
 });
 ```
 
@@ -317,7 +317,7 @@ specific provider, per-request keys, a different model, tests.
 
 ```javascript
 import { DEFAULT_MODELS } from 'defiant-jazz';
-// { anthropic: 'claude-sonnet-5', openai: 'gpt-4o-mini' }
+// { anthropic: 'claude-sonnet-5', openai: 'gpt-6-luna' }
 ```
 
 Either default can be swapped with `model`, on an instance or per call.
@@ -342,18 +342,18 @@ Opt-ins worth knowing about:
 
 ### OpenAI
 
-The default is `gpt-4o-mini`. In the comparison it was the weakest of seven
-OpenAI models: in 3 of 12 tries it replied to the quote instead of rewriting
-it. The full writeup is in
+The default is `gpt-6-luna`. It was the cheapest of seven OpenAI models
+compared, and it stayed on task every time. The old default, `gpt-4o-mini`
+(used by 0.8.2 and earlier), replied to the quote instead of rewriting it in
+3 of 12 tries. The full writeup is in
 [model-comparison.md](model-comparison.md#run-4--openai-models).
 
 Opt-ins worth knowing about:
 
 | Model | Good for | Trade-off |
 | --- | --- | --- |
-| `gpt-6-luna` | Cheapest, and stayed on task every time | Almost never names anything from the show |
-| `gpt-6.1-sol` | Best writing on OpenAI | ~14x the default's cost (still less than `claude-sonnet-5`); no lore |
-| `gpt-4o` | Most natural lore on OpenAI | ~16x the default's cost |
+| `gpt-6.1-sol` | Best writing on OpenAI | ~20x the default's cost (still less than `claude-sonnet-5`); no lore |
+| `gpt-4o` | Most natural lore on OpenAI | ~24x the default's cost |
 
 Switching works the same way:
 
@@ -364,8 +364,9 @@ await gpt.dylan("Hello world", { model: '<model-id>' }); // per call works too
 
 Worth knowing about:
 
-- Lore is weaker on every OpenAI model tested, not just `gpt-4o-mini`: a
-  term from the show is either rare or forced in where it doesn't fit. See
+- Lore is weaker on every OpenAI model tested: a term from the show is
+  either rare or forced in where it doesn't fit. The default almost never
+  names one. See
   the known limitation in [CHANGELOG.md](CHANGELOG.md#060) (0.6.0). If lore
   matters to you, use Claude.
 - GPT-5 and later need 0.8.2 or later. On 0.8.1 and earlier they fail with
@@ -397,10 +398,10 @@ await claude.mark(quote, { model: 'claude-opus-5-5' });
 //    of sat there eating it, trying to remember what I thought I was going
 //    to do with the money.
 
-// gpt-4o-mini (OpenAI default)
+// gpt-6-luna (OpenAI default)
 await gpt.mark(quote);
-// => I guess they thought pizza was a suitable substitute for a raise,
-//    which... well, it's not really the same thing, is it?
+// => They gave us pizza instead of raises. I guess it's still pizza.
+//    That's something, technically.
 ```
 
 ## Effort (Anthropic only)
@@ -476,7 +477,7 @@ Network failures before any response arrives come through as
 | `createDefiantJazz(opts?)` | Returns an isolated instance with the same call shapes |
 | `configure(opts)` | Configures the shared `refine`; same as `refine.configure(opts)` |
 | `CHARACTERS` | `{ mark: "Mark S.", irving: "Irving B.", dylan: "Dylan G.", milchick: "Mr. Milchick" }` |
-| `DEFAULT_MODELS` | `{ anthropic: 'claude-sonnet-5', openai: 'gpt-4o-mini' }` |
+| `DEFAULT_MODELS` | `{ anthropic: 'claude-sonnet-5', openai: 'gpt-6-luna' }` |
 
 Types: `CharacterKey`, `DefiantJazzOptions`, `Effort`, `RefineOptions`,
 `RefineResult`, `TokenUsage`.
