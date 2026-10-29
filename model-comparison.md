@@ -327,7 +327,7 @@ outputs by replying to Mark's quote instead of rewriting it. `gpt-6-luna`
 stayed on task all 12 times, costs about a third less, and reads at least as
 well. The trade-off is lore: luna almost never names anything from the show,
 but neither does `gpt-4o-mini`. **The OpenAI default is now `gpt-6-luna`**
-(after 0.8.2). To keep the old behavior, pass `model: 'gpt-4o-mini'`.
+(0.9.0 and later). To keep the old behavior, pass `model: 'gpt-4o-mini'`.
 
 OpenAI opt-ins worth knowing about:
 
