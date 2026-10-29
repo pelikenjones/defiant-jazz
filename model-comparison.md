@@ -2,7 +2,8 @@
 
 Runs 1–2 compared Opus 5, Sonnet 5 and Haiku 4.5 and set the default to
 Sonnet 5. Run 3 checked whether the 5.5 generation (Sonnet 5.5, Haiku 5.5,
-Opus 5.5) should replace it.
+Opus 5.5) should replace it. Run 4 did the same for the OpenAI provider,
+whose default is `gpt-4o-mini`.
 
 When runs 1–2 were done, the Anthropic provider's default model was
 `claude-opus-5` ([src/providers/anthropic.ts](src/providers/anthropic.ts)). Opus 5 is priced
@@ -209,6 +210,95 @@ is somehow worse"*) and Irving (*"every column brought smartly into line like
 a company dressed for inspection"*). Also the most expensive (2.7× Sonnet 5),
 the slowest, and the wordiest; one Milchick reply ran 82 words.
 
+## Run 4 — OpenAI models
+
+Same four quote/character pairs, three samples each, `lore: true`, cost and
+latency measured as in Run 3. The prompt is at `d05d5a1`. That's one change
+since Run 3: the 0.8.1 fix that passes the input in a `<quote>` block and
+asks for the line without wrapping quotes. Character voices and lore are
+unchanged, so the runs are comparable, but not identical. Full outputs, all
+84 of them, are in
+[transcripts/model-comparison-run-4.md](transcripts/model-comparison-run-4.md).
+
+Seven models: the default, its bigger sibling, one model from each later
+generation's small tier, and the two mid-priced GPT-6.1 models.
+
+| Model | Price (in/out per MTok) | Cost/call | Latency | Output tokens | Words | Lore terms used |
+| --- | --- | --- | --- | --- | --- | --- |
+| `gpt-4o-mini` (default) | $0.15 / $0.60 | $0.0003 | 0.9s | 33 | 26 | 1 of 12 |
+| `gpt-4o` | $2.50 / $10 | $0.0048 | 1.0s | 26 | 22 | 4 of 12 |
+| `gpt-4.1-mini` | $0.40 / $1.60 | $0.0008 | 0.9s | 39 | 31 | 9 of 12 |
+| `gpt-5-mini` | $0.25 / $2 | $0.0018 | 7.2s | 654 | 25 | 6 of 12 |
+| `gpt-6-luna` | $0.10 / $0.50 | $0.0002 | 1.5s | 38 | 18 | 1 of 12 |
+| `gpt-6.1-terra` | $1 / $5 | $0.0020 | 2.1s | 45 | 17 | 0 of 12 |
+| `gpt-6.1-sol` | $2 / $10 | $0.0041 | 2.7s | 45 | 21 | 0 of 12 |
+
+Prices are OpenAI's standard tier, checked on 2026-10-28. "Lore terms used"
+counts outputs that name something from the show (melon bar, Kier, the
+perpetuity wing, and so on). For reference, every Claude model in Run 3 did
+this in 3 of 12. Some OpenAI models reach for lore much more often, and
+others almost never.
+
+Two things hold across all seven models:
+
+- **Shorter replies.** 17–31 words, against 36–54 for Claude.
+- **Cheaper calls.** Every model here costs less per call than
+  `claude-sonnet-5` ($0.0063), mostly because input is cheaper.
+
+### `gpt-4o-mini` (the default)
+
+The weakest of the run. All three Mark outputs reply *to* the quote instead
+of rewriting it in his voice (*"That sounds... frustrating. I mean, it's
+like you're just trying to get by"*), so a quarter of its outputs miss the
+task. It named one lore term in twelve tries, which matches the 0.6.0 known
+limitation. Milchick was florid but toothless, and Irving fell back on
+generic phrases (*"our noble duties"*). Dylan was fine.
+
+### `gpt-4o`
+
+On task all 12 times, with the most natural lore of the run: Dylan's *"even
+a finger trap would have conveyed more meaningful intel"* and an Irving that
+names Kier. About 16× the default's cost, but still cheaper than
+`claude-sonnet-5`.
+
+### `gpt-4.1-mini`
+
+Uses lore the most and lands it the worst: *"a veritable, if humble, melon
+bar of the spirit"*, and a Mark that replies to the quote and ends up *"in
+the break room of life"*. Irving was good (*"a humble offering to the
+perpetuity wing"*). Milchick rambled.
+
+### `gpt-5-mini`
+
+Not recommended. It spends about 600 tokens reasoning per call, which makes
+it the slowest model here by far (7.2s). All three Mark outputs are close to
+the input word for word. Dylan stepped outside the show, with LinkedIn and
+PowerPoint references.
+
+### `gpt-6-luna`
+
+The cheapest model tested, about a third cheaper than the default, and on
+task all 12 times. Mark sounds like himself (*"So... that's happening."*),
+and Irving is dignified if plain. Lore is nearly absent: one "waffle party"
+in twelve. Two of the Milchick outputs were near-duplicates.
+
+### `gpt-6.1-terra`
+
+On task, but the tersest and most repetitive model here: two Dylan outputs
+both end *"Hell, a subject line."* Two of the Irving outputs are nearly the
+same. Milchick was polite with no edge. It costs 10× `gpt-6-luna` and isn't
+clearly better.
+
+### `gpt-6.1-sol`
+
+The best writing of the run. Milchick finally has his real register,
+menace inside politeness: *"Do avail yourselves while that appreciation is
+still warm"* and *"in such a shareable format"*. Mark was good (*"Not,
+uh... not in a helpful way."*). Dylan swears the hardest, which the
+character prompt asks for. Two of the Irving outputs were word-for-word
+identical, and no output used lore. It costs about two-thirds of
+`claude-sonnet-5`.
+
 ## Conclusion
 
 **The default stays `claude-sonnet-5`** (Run 3). Neither Sonnet 5.5 variant
@@ -231,9 +321,27 @@ From runs 1–2, still true: don't default to Haiku 4.5 (the near-empty Mark
 response in run 2), and Sonnet 5 was chosen over Opus 5 at 40% of its cost
 with matching quality.
 
-The OpenAI default (`gpt-4o-mini`) is out of scope here — see the known
-limitation in [CHANGELOG.md](CHANGELOG.md) (0.6.0) — and deserves its own
-comparison before being touched.
+**On OpenAI, `gpt-4o-mini` should be replaced** (Run 4). Unlike the
+Anthropic default, it has a real defect: it missed the task in 3 of 12
+outputs by replying to Mark's quote instead of rewriting it. `gpt-6-luna`
+stayed on task all 12 times, costs about a third less, and reads at least as
+well. The trade-off is lore: luna almost never names anything from the show,
+but neither does `gpt-4o-mini`. Changing the default is proposed separately
+from this write-up, because it changes every OpenAI user's output.
+
+OpenAI opt-ins worth knowing about:
+
+- **`gpt-6.1-sol`** for the best writing, especially Milchick, at about
+  two-thirds the cost of `claude-sonnet-5`. It uses no lore.
+- **`gpt-4o`** for the most natural lore on OpenAI, at a similar cost to
+  `gpt-6.1-sol`.
+
+Avoid `gpt-5-mini` (slow, barely transforms Mark) and `gpt-4.1-mini`
+(forced lore).
+
+On every OpenAI model, lore is either rare or forced. The 0.6.0 known
+limitation in [CHANGELOG.md](CHANGELOG.md) still holds across the board, not
+just for `gpt-4o-mini`. If lore matters to you, use Claude.
 
 ## Reproducing
 
@@ -248,6 +356,16 @@ as model IDs with an optional effort level:
 ```
 node --env-file=.env transcripts/compare-models.mjs claude-sonnet-5 claude-sonnet-5-5@low
 ```
+
+IDs starting with `claude-` run on Anthropic, and everything else runs on
+OpenAI, so both keys can be in `.env` at once. Effort works only on
+Anthropic. Run 4 was:
+
+```
+node --env-file=.env transcripts/compare-models.mjs gpt-4o-mini gpt-4o gpt-4.1-mini gpt-5-mini gpt-6-luna gpt-6.1-terra gpt-6.1-sol
+```
+
+That's 84 calls, about $0.17.
 
 `SAMPLES=n` sets samples per pair (default 3). It writes a summary table and
 every output to `transcripts/model-comparison-latest.md`. Every call is a live
