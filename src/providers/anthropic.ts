@@ -57,6 +57,9 @@ export async function runAnthropic(
       },
     };
   } catch (error) {
+    if (error instanceof Anthropic.APIUserAbortError) {
+      throw error;
+    }
     if (error instanceof Anthropic.AuthenticationError) {
       throw new Error("Anthropic rejected the API key. Check ANTHROPIC_API_KEY.");
     }

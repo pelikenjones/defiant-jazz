@@ -440,15 +440,21 @@ await refine.dylan("Hello world", { effort: 'low' });
 | `Anthropic rejected the API key.` | Anthropic returned an authentication error. | Check `ANTHROPIC_API_KEY` or `apiKey`. |
 | `Anthropic rate limit hit.` | Anthropic returned a rate-limit error. | Retry after a short delay. |
 | `Anthropic API error (` | Any other Anthropic API error, with its status and message. | Read the message; a model rejecting `effort` lands here. |
+| `OpenAI rejected the API key.` | OpenAI returned an authentication error. | Check `OPENAI_API_KEY` or `apiKey`. |
+| `OpenAI account has no credit left.` | OpenAI returned `insufficient_quota`: the account has no credit or billing set up. | Add credit or billing at [platform.openai.com](https://platform.openai.com). Retrying won't help. |
+| `OpenAI rate limit hit.` | OpenAI returned a rate-limit error. | Retry after a short delay. |
+| `OpenAI API error (` | Any other OpenAI API error, with its status and message. | Read the message; an unknown model ID lands here as a 404. |
 | `Anthropic returned no text content (stop_reason: max_tokens)` | Reasoning used up the token budget. | Raise `maxTokens`, or lower `effort`. |
 | `OpenAI returned no content.` | OpenAI sent back an empty completion. | Retry, or raise `maxTokens`. |
 
-OpenAI's own API errors (bad key, rate limits) are thrown as-is by the
-`openai` SDK.
-
 An account with no credit or billing set up fails on the first call: as
-`Anthropic API error (...)` on Anthropic, or as the `openai` SDK's own error
-on OpenAI. The fix is adding credit in the provider's console.
+`Anthropic API error (...)` on Anthropic, or as `OpenAI account has no credit
+left.` on OpenAI. The fix is adding credit in the provider's console.
+
+If you cancel a call with `signal`, the SDK's own abort error is thrown
+unchanged on both providers, so you can tell a cancel apart from a failure.
+Network failures before any response arrives come through as
+`Anthropic API error (undefined)` or `OpenAI API error (undefined)`.
 
 </details>
 

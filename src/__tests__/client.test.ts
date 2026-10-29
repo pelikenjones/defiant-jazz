@@ -11,15 +11,17 @@ vi.mock("@anthropic-ai/sdk", () => {
       this.apiKey = opts.apiKey;
     }
   }
-  class AuthenticationError extends Error {}
-  class RateLimitError extends Error {}
   class APIError extends Error {
     status = 500;
   }
+  class AuthenticationError extends APIError {}
+  class RateLimitError extends APIError {}
+  class APIUserAbortError extends APIError {}
   return {
     default: Object.assign(MockAnthropic, {
       AuthenticationError,
       RateLimitError,
+      APIUserAbortError,
       APIError,
     }),
   };
@@ -33,7 +35,21 @@ vi.mock("openai", () => {
       this.apiKey = opts.apiKey;
     }
   }
-  return { default: MockOpenAI };
+  class APIError extends Error {
+    status = 500;
+    code: string | null = null;
+  }
+  class AuthenticationError extends APIError {}
+  class RateLimitError extends APIError {}
+  class APIUserAbortError extends APIError {}
+  return {
+    default: Object.assign(MockOpenAI, {
+      AuthenticationError,
+      RateLimitError,
+      APIUserAbortError,
+      APIError,
+    }),
+  };
 });
 
 const ORIGINAL_ENV = { ...process.env };
@@ -297,6 +313,77 @@ describe("empty responses", () => {
 
     await expect(dj.dylan("hello")).rejects.toThrow(/no text content/);
   });
+});
+
+describe("API errors", () => {
+  async function setup(provider: "anthropic" | "openai") {
+    const create = provider === "anthropic" ? anthropicCreate : openaiCreate;
+    const sdk = (await import(provider === "anthropic" ? "@anthropic-ai/sdk" : "openai")).default;
+    const { createDefiantJazz } = await import("../index.js");
+    const dj = createDefiantJazz({ provider, apiKey: "test-key" });
+    return { create, sdk, dj };
+  }
+
+  it.each([
+    ["anthropic", /^Anthropic rejected the API key\. Check ANTHROPIC_API_KEY\.$/],
+    ["openai", /^OpenAI rejected the API key\. Check OPENAI_API_KEY\.$/],
+  ] as const)("%s: wraps authentication errors", async (provider, expected) => {
+    const { create, sdk, dj } = await setup(provider);
+    create.mockRejectedValue(new sdk.AuthenticationError("401 invalid key"));
+
+    await expect(dj.dylan("hello")).rejects.toThrow(expected);
+  });
+
+  it.each([
+    ["anthropic", /^Anthropic rate limit hit\./],
+    ["openai", /^OpenAI rate limit hit\./],
+  ] as const)("%s: wraps rate-limit errors", async (provider, expected) => {
+    const { create, sdk, dj } = await setup(provider);
+    create.mockRejectedValue(new sdk.RateLimitError("429 slow down"));
+
+    await expect(dj.dylan("hello")).rejects.toThrow(expected);
+  });
+
+  it("openai: reports an empty balance instead of a rate limit", async () => {
+    const { create, sdk, dj } = await setup("openai");
+    const error = new sdk.RateLimitError("429 You exceeded your current quota");
+    error.code = "insufficient_quota";
+    create.mockRejectedValue(error);
+
+    await expect(dj.dylan("hello")).rejects.toThrow(/^OpenAI account has no credit left\./);
+  });
+
+  it.each([
+    ["anthropic", "Anthropic API error (500): 500 server exploded"],
+    ["openai", "OpenAI API error (500): 500 server exploded"],
+  ] as const)("%s: wraps other API errors with their status", async (provider, expected) => {
+    const { create, sdk, dj } = await setup(provider);
+    create.mockRejectedValue(new sdk.APIError("500 server exploded"));
+
+    await expect(dj.dylan("hello")).rejects.toThrow(expected);
+  });
+
+  it.each(["anthropic", "openai"] as const)(
+    "%s: passes user aborts through unwrapped",
+    async (provider) => {
+      const { create, sdk, dj } = await setup(provider);
+      const abort = new sdk.APIUserAbortError("Request was aborted.");
+      create.mockRejectedValue(abort);
+
+      await expect(dj.dylan("hello")).rejects.toBe(abort);
+    }
+  );
+
+  it.each(["anthropic", "openai"] as const)(
+    "%s: passes non-API errors through unwrapped",
+    async (provider) => {
+      const { create, dj } = await setup(provider);
+      const error = new TypeError("fetch failed");
+      create.mockRejectedValue(error);
+
+      await expect(dj.dylan("hello")).rejects.toBe(error);
+    }
+  );
 });
 
 describe("configure() / default instance", () => {

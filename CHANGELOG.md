@@ -2,6 +2,27 @@
 
 All notable changes to this package are documented here.
 
+## Unreleased
+
+### Changed
+
+- OpenAI errors are now friendly, matching Anthropic's. A bad key throws
+  `OpenAI rejected the API key. Check OPENAI_API_KEY.`, a rate limit throws
+  `OpenAI rate limit hit. Retry after a short delay.`, and any other API
+  error throws `OpenAI API error (<status>): <message>`. Before, the `openai`
+  SDK's errors were thrown as-is. Code that caught the SDK's error classes
+  (`OpenAI.AuthenticationError` and so on) now gets a plain `Error`.
+- An OpenAI account with no credit throws
+  `OpenAI account has no credit left. Add credit or billing at
+  platform.openai.com.` OpenAI sends this as a 429, the same status as a
+  rate limit, but retrying never fixes it.
+
+### Fixed
+
+- Cancelling a call with `signal` on Anthropic threw
+  `Anthropic API error (undefined): Request was aborted.` The SDK's abort
+  error is now thrown unchanged on both providers.
+
 ## 0.8.2
 
 ### Fixed
